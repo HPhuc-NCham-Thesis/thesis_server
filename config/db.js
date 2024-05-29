@@ -1,41 +1,38 @@
 const fs = require('fs').promises;
 const { Readable } = require('stream');
 const rdfxmlParser = require('rdfxml-streaming-parser').RdfXmlParser;
-const { DataFactory, Store } = require('n3');
+const { Store } = require('n3');
 
 const loadRDFFile = async () => {
-    const filePath = 'E:\\Năm 4\\KLTN\\Source\\ONT.owx';
-    const outputFilePath = 'store.json';
-  try {
-    const data = await fs.readFile(filePath, 'utf8');
+    const filePath = "E:\\Năm 4\\KLTN\\Source\\ONT.rdf";  // Đường dẫn đến tệp RDF của bạn
+    try {
+        // Đọc nội dung của tệp RDF
+        const rdfData = await fs.readFile(filePath, "utf8");
 
-    const rdfStream = new Readable({
-      read() {
-        this.push(data);
-        this.push(null);
-      }
-    });
+        // Khởi tạo một RDF Stream từ nội dung RDF
+        const rdfStream = Readable.from([rdfData]);
+        const parser = new rdfxmlParser();
+        const store = new Store();
 
-    const store = new Store();
+        rdfStream.pipe(parser)
+            .on('data', quad => {
+                store.addQuad(quad);
+            })
+            .on('error', error => {
+                console.error(`Error parsing RDF data: ${error}`);
+                throw error;
+            });
 
-    const parser = new rdfxmlParser();
-
-    await new Promise((resolve, reject) => {
-      rdfStream.pipe(parser)
-        .on('data', quad => store.addQuad(quad))
-        .on('end', resolve)
-        .on('error', reject);
-    });
-
-    console.log('Ontology data successfully loaded into N3 store.');
-
-    const serializedStore = JSON.stringify(store.getQuads(null, null, null, null));
-    await fs.writeFile(outputFilePath, serializedStore);
-    console.log('RDF store saved to ' + outputFilePath);
-
-  } catch (error) {
-    console.error(`Error: ${error}`);
-  }
+        // Đợi cho đến khi tất cả dữ liệu đã được phân tích và lưu trữ
+        await new Promise((resolve, reject) => {
+            parser.on('end', resolve);
+            parser.on('error', reject);
+        });
+        return store;
+    } catch (error) {
+        console.error(`Error loading RDF data from RDF file: ${error}`);
+        throw error;
+    }
 };
 
 module.exports = loadRDFFile;

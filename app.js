@@ -1,21 +1,25 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
-const rdfRoutes = require('./routers/rdfRouter');
 const loadRDFFile = require('./config/db');
 
-app.use(bodyParser.json());
-app.use('/api', rdfRoutes);
+const PORT = 3000;
+(async () => {
+  try {
+      const store = await loadRDFFile();
+      app.locals.store = store;  // Lưu store vào app.locals để có thể truy cập từ mọi nơi trong app
 
-const PORT = process.env.PORT || 3000;
+      app.use(express.json());
+      app.use(express.urlencoded({ extended: true }));
 
-loadRDFFile();
+      // Sử dụng router được định nghĩa trong router.js
+      require("./routers/index")(app);
 
-app.use((req, res) => {
-  return res.json({
-      message: "Not Found"
-  })
-})
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+      app.listen(PORT, () => {
+          console.log(`Server is running on port ${PORT}`);
+      });
+  } catch (error) {
+      console.error("Failed to load RDF data:", error);
+      process.exit(1); // Thoát nếu không thể nạp dữ liệu RDF
+  }
+})();

@@ -5,20 +5,23 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js"
+    "start": "nodemon app.js --ignore store.json"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@comunica/query-sparql": "^3.1.1",
     "@rdfjs/parser-n3": "^2.0.2",
+    "body-parser": "^1.20.2",
     "express": "^4.19.2",
     "fs": "^0.0.1-security",
     "n3": "^1.17.3",
     "rdf-ext": "^2.5.1",
     "rdflib": "^2.2.35",
     "rdfstore": "^0.9.17",
-    "rdfxml-streaming-parser": "^2.4.0"
+    "rdfxml-streaming-parser": "^2.4.0",
+    "sparql-engine": "^0.8.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
