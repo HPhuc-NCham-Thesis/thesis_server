@@ -7,4 +7,5 @@ router.post('/LearningOutcome-Topic', rdfController.LearningOutcome_Topic);
 router.post('/ActivityResult', rdfController.ActivityResult);
 router.post('/Topic-LearningOutcome', rdfController.Topic_LearningOutcome);
 router.post('/Level-LearningOutcome', rdfController.Level_LearningOutcome);
+router.post('/SubTopic', rdfController.SubTopic);
 module.exports = router;

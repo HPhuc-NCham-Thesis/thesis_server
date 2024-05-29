@@ -273,13 +273,14 @@ const rdfController = {
       const{name,Topic}=req.body;
       const query = `
       PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
-      SELECT DISTINCT ?hasID 
+      SELECT DISTINCT ?hasID ?hasLearningOutcomeText
       WHERE {
         ?Course ont:hasCourseName "${name}"^^xsd:string.
         ?Topic ont:hasTopicDescription "${Topic}"^^xsd:string.
         ?Course ont:contains ?Topic.
         ?Topic ont:hasLearningOutcome ?Learning_Outcome.
         ?Learning_Outcome ont:hasID ?hasID.
+        ?Learning_Outcome ont:hasLearningOutcomeText ?hasLearningOutcomeText.
       }`;
       const bindingsStream = await myEngine.queryBindings(query, {
         sources: [store],
@@ -291,7 +292,48 @@ const rdfController = {
           hasID: bindingObject.hasID
             ? bindingObject.hasID.value
             : undefined,
-          
+          hasLearningOutcomeText: bindingObject.hasLearningOutcomeText
+            ? bindingObject.hasLearningOutcomeText.value
+            : undefined,
+        };
+      });
+      console.log(formattedResults);
+      res.status(200).json({
+        message: "Truy vấn đã được thực thi",
+        results: formattedResults,
+      });
+    }catch (error) {
+      console.error("Error: ", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+  SubTopic: async (req, res) => {
+    try {
+      const store = req.app.locals.store; 
+      const{name,Topic}=req.body;
+      if (!name || !Topic) {
+        return res.status(400).json({message: "name,Topic là bắt buộc"});
+      }
+      const query = `
+      PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
+      SELECT ?hasTopicDescription
+      WHERE {
+        ?Course ont:hasCourseName "${name}"^^xsd:string.
+        ?Topic ont:hasTopicDescription "${Topic}"^^xsd:string.
+        ?Course ont:contains ?Topic.
+        ?Topic ont:hasSub ?Topic.
+        ?Topic ont:hasTopicDescription ?hasTopicDescription.
+      }`;
+      const bindingsStream = await myEngine.queryBindings(query, {
+        sources: [store],
+      });
+      const bindings = await bindingsStream.toArray();
+      const formattedResults = bindings.map((binding) => {
+        const bindingObject = Object.fromEntries(binding.entries);
+        return {
+          hasTopicDescription: bindingObject.hasTopicDescription
+            ? bindingObject.hasTopicDescription.value
+            : undefined,
         };
       });
       console.log(formattedResults);
