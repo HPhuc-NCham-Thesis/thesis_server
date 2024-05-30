@@ -9,5 +9,7 @@ router.post('/ActivityResult', rdfController.ActivityResult);
 router.post('/Topic-LearningOutcome', rdfController.Topic_LearningOutcome);
 router.post('/Level-LearningOutcome', rdfController.Level_LearningOutcome);
 router.post('/SubTopic', rdfController.SubTopic);
-
+router.post('/CourseLOTopic', rdfController.CourseLOTopic);
+router.post('/LOTopicCourse', rdfController.LOTopicCourse); //chờ fix
+router.post('/Course', rdfController.Course);
 module.exports = router;
