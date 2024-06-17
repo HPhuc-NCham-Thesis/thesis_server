@@ -4,7 +4,7 @@ const rdfxmlParser = require('rdfxml-streaming-parser').RdfXmlParser;
 const { Store } = require('n3');
 
 const loadRDFFile = async () => {
-    const filePath = "E:\\Năm 4\\KLTN\\Source\\ONT.rdf";  // Đường dẫn đến tệp RDF của bạn
+    const filePath = "E:\\Năm 4\\KLTN\\Source\\ONT.rdf";  
     try {
         // Đọc nội dung của tệp RDF
         const rdfData = await fs.readFile(filePath, "utf8");

@@ -12,4 +12,6 @@ router.post('/SubTopic', rdfController.SubTopic);
 router.post('/CourseLOTopic', rdfController.CourseLOTopic);
 router.post('/LOTopicCourse', rdfController.LOTopicCourse); //chờ fix
 router.post('/Course', rdfController.Course);
+
+router.post('/SubTopic', rdfController.SubTopicOfTopic);
 module.exports = router;

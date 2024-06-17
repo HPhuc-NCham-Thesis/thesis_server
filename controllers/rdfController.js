@@ -5,20 +5,20 @@ const rdfController = {
   Learner: async (req, res) => {
     try {
       const store = req.app.locals.store; // Truy cập store từ req.app.locals
-      const { id, Topic, LO } = req.body;
+      const { name, Topic, LO } = req.body;
       console.log(req.body);
 
-      if (!id || !Topic || !LO) {
+      if (!name || !Topic || !LO) {
         return res
           .status(400)
-          .json({ message: "id, Topic, và LO là bắt buộc" });
+          .json({ message: "CourseName, Topic, và LO là bắt buộc" });
       }
 
       const query = `
       PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
       SELECT DISTINCT ?hasID ?hasLearnerFullname ?hasActivityItemResult
       WHERE {
-        ?Course ont:hasID "${id}"^^xsd:string.
+        ?Course ont:hasID "${name}"^^xsd:string.
         ?Topic ont:hasTopicDescription "${Topic}"^^xsd:string.
         ?Learning_Outcome ont:hasLearningOutcomeText "${LO}"^^xsd:string.
         ?Course ont:contains ?Topic.
@@ -120,15 +120,15 @@ const rdfController = {
   LearningOutcome_Topic: async (req, res) => {
     try {
       const store = req.app.locals.store; 
-      const{id,idsv}=req.body;
-      if(!id || !idsv){
+      const{name,idsv}=req.body;
+      if(!name || !idsv){
         return res.status(400).json({message: "id và idsv là bắt buộc"});
       }
       const query = `
       PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
       SELECT DISTINCT ?hasTopicDescription ?hasLearningOutcomeText ?hasActivityItemResult
       WHERE {
-        ?Course ont:hasID "${id}"^^xsd:string.
+        ?Course ont:hasCourseName "${name}"^^xsd:string.
         ?Learner ont:hasID "${idsv}"^^xsd:string.
         ?Course ont:contains ?Topic.
         ?Topic ont:hasLearningOutcome ?Learning_Outcome.
@@ -467,6 +467,46 @@ const rdfController = {
         results: formattedResults,
       });
     }catch (error) {
+      console.error("Error: ", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+  //subTopic
+  SubTopicOfTopic: async(req, res) => {
+    try {
+      const store = req.app.locals.store; 
+      const {name, Topic} = req.body;
+      if (!name || !Topic) {
+        return res.status(400).json({message: "name và Topic là bắt buộc"});
+      }
+      const query = `
+      PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
+      SELECT ?hasTopicDescription
+      WHERE {
+        ?Course ont:hasCourseName "${name}"^^xsd:string.
+        ?Topic ont:hasTopicDescription "${Topic}"^^xsd:string.
+        ?Course ont:contains ?Topic.
+        ?Topic ont:hasSub+ ?SubTopic.
+        ?SubTopic ont:hasTopicDescription ?hasTopicDescription.
+      }`;
+      const bindingsStream = await myEngine.queryBindings(query, {
+        sources: [store],
+      });
+      const bindings = await bindingsStream.toArray();
+      const formattedResults = bindings.map((binding) => {
+        const bindingObject = Object.fromEntries(binding.entries);
+        return {
+          hasSubTopic: bindingObject.hasSubTopic
+            ? bindingObject.hasSubTopic.value
+            : undefined,
+        };
+      });
+      console.log(formattedResults);
+      res.status(200).json({
+        message: "Truy vấn đã được thực thi",
+        results: formattedResults,
+      });
+    } catch (error) {
       console.error("Error: ", error);
       res.status(500).json({ error: error.message });
     }

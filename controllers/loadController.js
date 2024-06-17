@@ -3,14 +3,14 @@ const QueryEngine = require("@comunica/query-sparql").QueryEngine;
 const myEngine = new QueryEngine();
 
 const loadController = {
-    LoadCourseLO: async (req, res) => {
+    LoadTopicLO: async (req, res) => {
         try {
             const store = req.app.locals.store;
             const query1 = `
             PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
-            SELECT DISTINCT ?hasCourseName 
+            SELECT DISTINCT ?hasTopicDescription 
             WHERE {
-                ?Course ont:hasCourseName ?hasCourseName.
+                ?Topic ont:hasTopicDescription ?hasTopicDescription.
             }`;
             const bindingsStream1 = await myEngine.queryBindings(query1, {
                 sources: [store],
@@ -19,8 +19,8 @@ const loadController = {
             const formattedResults1 = bindings1.map((binding1) => {
                 const bindingObject = Object.fromEntries(binding1.entries);
                 return {
-                    hasCourseName: bindingObject.hasCourseName 
-                        ? bindingObject.hasCourseName.value 
+                    hasTopicDescription: bindingObject.hasTopicDescription 
+                        ? bindingObject.hasTopicDescription.value 
                         : undefined,
               };
             });
@@ -171,7 +171,40 @@ const loadController = {
             console.error("Error: ", error);
             res.status(500).json({ error: error.message });
         }
-    }
+    },
+    loadLearnerByCourse: async (req, res) => {
+        try {
+            const store = req.app.locals.store;
+            const {name} = req.body;
+            console.log(req.body);
+            const query = `
+            PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
+            SELECT DISTINCT ?hasID
+            WHERE {
+                ?Course ont:hasCourseName "${name}"^^xsd:string.
+                ?Course ont:contains ?Topic.
+                ?Activity ont:relatedTo ?Topic.
+                ?Activity ont:belongsTo ?Learner.
+                ?Learner ont:hasID ?hasID.
+            }`;
+            const bindingsStream = await myEngine.queryBindings(query, {
+                sources: [store],
+              });
+            const bindings = await bindingsStream.toArray();
+            const formattedResults = bindings.map((binding) => {
+                const bindingObject = Object.fromEntries(binding.entries);
+                return {
+                    hasID: bindingObject.hasID 
+                        ? bindingObject.hasID.value 
+                        : undefined,
+              };
+            });
+            res.status(200).json(formattedResults);
+        }catch (error) {
+            console.error("Error: ", error);
+            res.status(500).json({ error: error.message });
+        }
+    },
 };
 
 module.exports = loadController;
