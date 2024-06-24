@@ -231,7 +231,7 @@ const rdfController = {
       const { name, activity } = req.body;
       const query = `
       PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
-      SELECT DISTINCT ?hasDescription ?hasName
+      SELECT ?hasDescription ?hasName
       WHERE {
         ?Course ont:hasName "${name}"^^xsd:string.
         ?Activity ont:hasName "${activity}"^^xsd:string.

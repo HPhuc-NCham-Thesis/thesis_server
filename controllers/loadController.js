@@ -49,14 +49,16 @@ const loadController = {
             res.status(500).json({ error: error.message });
         }
     },
+///Lấy tên môn học
     LoadCourseName: async (req, res) => {
         try {
             const store = req.app.locals.store;
             const query = `
-            PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
-            SELECT DISTINCT ?hasCourseName 
+            PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
+            SELECT DISTINCT ?hasName 
             WHERE {
-                ?Course ont:hasCourseName ?hasCourseName.
+                ?Course ont:hasLearningGoal ?LearningGoal.
+                ?Course ont:hasName ?hasName.
             }`;
             const bindingsStream = await myEngine.queryBindings(query, {
                 sources: [store],
@@ -65,8 +67,8 @@ const loadController = {
             const formattedResults = bindings.map((binding) => {
                 const bindingObject = Object.fromEntries(binding.entries);
                 return {
-                    hasCourseName: bindingObject.hasCourseName 
-                        ? bindingObject.hasCourseName.value 
+                    hasName: bindingObject.hasName 
+                        ? bindingObject.hasName.value 
                         : undefined,
               };
             });
@@ -76,6 +78,7 @@ const loadController = {
             res.status(500).json({ error: error.message });
         }   
     },
+//
     getTopicByCourse: async (req, res) => {
         try {
             const store = req.app.locals.store;
@@ -107,20 +110,26 @@ const loadController = {
             res.status(500).json({ error: error.message });
         }   
     },
+//Lấy danh sách hoạt động thuộc môn học
     getActivityByCourse: async (req, res) => {
         try {
             const store = req.app.locals.store;
             const {name} = req.body;
             console.log(req.body);
             const query = `
-            PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
-            SELECT DISTINCT ?hasActivityDescription
+            PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
+            SELECT DISTINCT ?hadID ?hasName
             WHERE {
-                ?Course ont:hasCourseName "${name}"^^xsd:string.
-                ?Course ont:contains ?Topic.
-                ?Activity ont:relatedTo ?Topic.
-                ?Activity ont:hasActivityDescription ?hasActivityDescription.
-            }`;
+                ?Course ont:hasName "${name}"^^xsd:string.
+                ?Course ont:hasLearningGoal ?LearningGoal.
+                ?LearningGoal ont:includes ?LearningOutcome.
+                ?Topic ont:hasLearningOutcome ?LearningOutcome.
+                ?LOAlignment ont:achieves ?LearningOutcome.
+                ?LOAlignment ont:involves ?Activity.
+                ?Activity ont:hasID ?hadID.
+                ?Activity ont:hasName ?hasName.
+            }
+            GROUP BY ?hadID ?hasName`;
             const bindingsStream = await myEngine.queryBindings(query, {
                 sources: [store],
               });
@@ -128,8 +137,8 @@ const loadController = {
             const formattedResults = bindings.map((binding) => {
                 const bindingObject = Object.fromEntries(binding.entries);
                 return {
-                    hasActivityDescription: bindingObject.hasActivityDescription 
-                        ? bindingObject.hasActivityDescription.value 
+                    hasName: bindingObject.hasName 
+                        ? bindingObject.hasName.value 
                         : undefined,
               };
             });
@@ -137,7 +146,7 @@ const loadController = {
         } catch (error) {
             console.error("Error: ", error);
             res.status(500).json({ error: error.message });
-        }
+        }   
     },
     loadLearnerByActivity: async (req, res) => {
         try {
