@@ -214,6 +214,38 @@ const loadController = {
             res.status(500).json({ error: error.message });
         }
     },
+//Lấy danh sách các group có tham gia course
+getGroupByCourse: async (req, res) => {
+        try {
+            const store = req.app.locals.store;
+            const {name} = req.body;
+            const query = `
+            PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
+            SELECT DISTINCT ?hasID
+            WHERE {
+                ?Course ont:hasName "${name}"^^xsd:string.
+                ?Enrollment ont:enrolls ?Course;
+                            ont:relates ?Group.
+                ?Group ont:hasID ?hasID.
+            }`;
+            const bindingsStream = await myEngine.queryBindings(query, {
+                sources: [store],
+              });
+            const bindings = await bindingsStream.toArray();
+            const formattedResults = bindings.map((binding) => {
+                const bindingObject = Object.fromEntries(binding.entries);
+                return {
+                    hasID: bindingObject.hasID 
+                        ? bindingObject.hasID.value 
+                        : undefined,
+              };
+            });
+            res.status(200).json(formattedResults);
+        }catch (error) {
+            console.error("Error: ", error);
+            res.status(500).json({ error: error.message });
+        }
+    },
 };
 
 module.exports = loadController;

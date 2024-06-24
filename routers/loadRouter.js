@@ -8,4 +8,6 @@ router.post('/getTopicByCourse', loadController.getTopicByCourse);
 router.post('/getActivityByCourse', loadController.getActivityByCourse);//Lấy hoạt động theo môn học
 router.post('/loadLearnerByActivity', loadController.loadLearnerByActivity);
 router.post('/loadLearnerByCourse', loadController.loadLearnerByCourse);
+//Lấy danh sách các group có tham gia course
+router.post('/getGroupByCourse', loadController.getGroupByCourse);
 module.exports = router;

@@ -13,4 +13,7 @@ router.post('/CourseLOTopic', rdfController.CourseLOTopic); //KR2
 router.post('/LOTopicCourse', rdfController.LOTopicCourse); //chờ fix
 router.post('/Course', rdfController.Course);
 router.post('/SubTopic', rdfController.SubTopicOfTopic);
+
+/////Learning Analytics
+router.post('/LOOfGroupAnalysis', rdfController.LOOfGroupAnalysis);
 module.exports = router;
