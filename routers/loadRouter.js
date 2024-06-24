@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const loadController = require('../controllers/loadController');
 
-router.get('/TopicLO', loadController.LoadCourseLO);
+router.get('/TopicLO', loadController.LoadTopicLO);
 router.get('/CourseName', loadController.LoadCourseName);
 router.post('/getTopicByCourse', loadController.getTopicByCourse);
 router.post('/getActivityByCourse', loadController.getActivityByCourse);

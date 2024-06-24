@@ -4,7 +4,7 @@ const myEngine = new QueryEngine();
 const rdfController = {
   Learner: async (req, res) => {
     try {
-      const store = req.app.locals.store; // Truy cập store từ req.app.locals
+      const store = req.app.locals.store;
       const { name, Topic, LO } = req.body;
       console.log(req.body);
 
@@ -94,7 +94,7 @@ const rdfController = {
 
       // Consume results as an array (easier)
       const bindings = await bindingsStream.toArray();
-      console.log(bindings.map(binding => Array.from(binding.entries)));
+      console.log(bindings.map((binding) => Array.from(binding.entries)));
 
       const formattedResults = bindings.map((binding) => {
         const bindingObject = Object.fromEntries(binding.entries);
@@ -119,10 +119,10 @@ const rdfController = {
   },
   LearningOutcome_Topic: async (req, res) => {
     try {
-      const store = req.app.locals.store; 
-      const{name,idsv}=req.body;
-      if(!name || !idsv){
-        return res.status(400).json({message: "id và idsv là bắt buộc"});
+      const store = req.app.locals.store;
+      const { name, idsv } = req.body;
+      if (!name || !idsv) {
+        return res.status(400).json({ message: "id và idsv là bắt buộc" });
       }
       const query = `
       PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
@@ -143,7 +143,7 @@ const rdfController = {
         sources: [store],
       });
       const bindings = await bindingsStream.toArray();
-      console.log(bindings.map(binding => Array.from(binding.entries)));
+      console.log(bindings.map((binding) => Array.from(binding.entries)));
       const formattedResults = bindings.map((binding) => {
         const bindingObject = Object.fromEntries(binding.entries);
         return {
@@ -168,13 +168,15 @@ const rdfController = {
       res.status(500).json({ error: error.message });
     }
   },
-  ActivityResult : async (req, res) => {
+  ActivityResult: async (req, res) => {
     try {
-      const store = req.app.locals.store; 
-      const{name,Act,idsv}=req.body;
+      const store = req.app.locals.store;
+      const { name, Act, idsv } = req.body;
       console.log(req.body);
-      if(!id || !ActID || !idsv){
-        return res.status(400).json({message: "id, ActID và idsv là bắt buộc"});
+      if (!id || !ActID || !idsv) {
+        return res
+          .status(400)
+          .json({ message: "id, ActID và idsv là bắt buộc" });
       }
       const query = `
       PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
@@ -196,16 +198,14 @@ const rdfController = {
         sources: [store],
       });
       const bindings = await bindingsStream.toArray();
-      console.log(bindings.map(binding => Array.from(binding.entries)));
+      console.log(bindings.map((binding) => Array.from(binding.entries)));
       const formattedResults = bindings.map((binding) => {
         const bindingObject = Object.fromEntries(binding.entries);
         return {
           hasActivityDescription: bindingObject.hasActivityDescription
             ? bindingObject.hasActivityDescription.value
             : undefined,
-          hasID: bindingObject.hasID
-            ? bindingObject.hasID.value
-            : undefined,
+          hasID: bindingObject.hasID ? bindingObject.hasID.value : undefined,
           hasActivityItemDescription: bindingObject.hasActivityItemDescription
             ? bindingObject.hasActivityItemDescription.value
             : undefined,
@@ -224,53 +224,54 @@ const rdfController = {
       res.status(500).json({ error: error.message });
     }
   },
+  ////////////////////////////
   Topic_LearningOutcome: async (req, res) => {
     try {
-      const store = req.app.locals.store; 
-      const {name,Act}=req.body;
-
+      const store = req.app.locals.store;
+      const { name, activity } = req.body;
       const query = `
-      PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
-      SELECT ?hasTopicDescription ?hasLearningOutcomeText
+      PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
+      SELECT DISTINCT ?hasDescription ?hasName
       WHERE {
-        ?Course ont:hasCourseName "${name}"^^xsd:string.
-        ?Activity ont:hasActivityDescription "${Act}"^^xsd:string.
-        ?Course ont:contains ?Topic.
-        ?Activity ont:relatedTo ?Topic.
-        ?Activity ont:aimsToAchieve ?Learning_Outcome.
-        ?Topic ont:hasTopicDescription ?hasTopicDescription.
-        ?Learning_Outcome ont:hasLearningOutcomeText ?hasLearningOutcomeText.
+        ?Course ont:hasName "${name}"^^xsd:string.
+        ?Activity ont:hasName "${activity}"^^xsd:string.
+        ?Course ont:hasLearningGoal ?LearningGoal.
+        ?LearningGoal ont:includes ?LearningOutcome.
+        ?LearningOutcomr ont:targets ?LearningLevel.
+        ?Topic ont:hasLearningOutcome ?LearningOutcome.
+        ?LOAlignment ont:achieves ?LearningOutcome.
+        ?LOAlignment ont:involves ?Activity.
+        ?Topic ont:hasDescription ?hasDescription.
+        ?LearningLevel ont:hasName ?hasName.
       }`;
       const bindingsStream = await myEngine.queryBindings(query, {
         sources: [store],
       });
       const bindings = await bindingsStream.toArray();
-      console.log(bindings.map(binding => Array.from(binding.entries)));
       const formattedResults = bindings.map((binding) => {
         const bindingObject = Object.fromEntries(binding.entries);
         return {
-          hasTopicDescription: bindingObject.hasTopicDescription
-            ? bindingObject.hasTopicDescription.value
+          hasDescription: bindingObject.hasDescription
+            ? bindingObject.hasDescription.value
             : undefined,
-          hasLearningOutcomeText: bindingObject.hasLearningOutcomeText
-            ? bindingObject.hasLearningOutcomeText.value
+          hasName: bindingObject.hasName 
+            ? bindingObject.hasName.value 
             : undefined,
         };
       });
-      console.log(formattedResults);
       res.status(200).json({
         message: "Truy vấn đã được thực thi",
         results: formattedResults,
       });
-    }catch (error) {
+    } catch (error) {
       console.error("Error: ", error);
       res.status(500).json({ error: error.message });
     }
   },
   Level_LearningOutcome: async (req, res) => {
     try {
-      const store = req.app.locals.store; 
-      const{name,Topic}=req.body;
+      const store = req.app.locals.store;
+      const { name, Topic } = req.body;
       const query = `
       PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
       SELECT DISTINCT ?hasID ?hasLearningOutcomeText
@@ -289,9 +290,7 @@ const rdfController = {
       const formattedResults = bindings.map((binding) => {
         const bindingObject = Object.fromEntries(binding.entries);
         return {
-          hasID: bindingObject.hasID
-            ? bindingObject.hasID.value
-            : undefined,
+          hasID: bindingObject.hasID ? bindingObject.hasID.value : undefined,
           hasLearningOutcomeText: bindingObject.hasLearningOutcomeText
             ? bindingObject.hasLearningOutcomeText.value
             : undefined,
@@ -302,7 +301,7 @@ const rdfController = {
         message: "Truy vấn đã được thực thi",
         results: formattedResults,
       });
-    }catch (error) {
+    } catch (error) {
       console.error("Error: ", error);
       res.status(500).json({ error: error.message });
     }
@@ -310,10 +309,10 @@ const rdfController = {
   // đang lỗi
   SubTopic: async (req, res) => {
     try {
-      const store = req.app.locals.store; 
-      const{name,Topic}=req.body;
+      const store = req.app.locals.store;
+      const { name, Topic } = req.body;
       if (!name || !Topic) {
-        return res.status(400).json({message: "name,Topic là bắt buộc"});
+        return res.status(400).json({ message: "name,Topic là bắt buộc" });
       }
       const query = `
       PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
@@ -342,7 +341,7 @@ const rdfController = {
         message: "Truy vấn đã được thực thi",
         results: formattedResults,
       });
-    }catch (error) {
+    } catch (error) {
       console.error("Error: ", error);
       res.status(500).json({ error: error.message });
     }
@@ -350,19 +349,20 @@ const rdfController = {
   CourseLOTopic: async (req, res) => {
     try {
       const store = req.app.locals.store;
-      const{name}=req.body;
+      const { name } = req.body;
       if (!name) {
-        return res.status(400).json({message: "name là bắt buộc"});
+        return res.status(400).json({ message: "name là bắt buộc" });
       }
       const query = `
-      PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
-      SELECT ?hasLearningOutcomeText ?hasTopicDescription
+      PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
+      SELECT ?hasName ?hasDescription
       WHERE {
-        ?Course ont:hasCourseName "${name}"^^xsd:string.
-        ?Course ont:contains ?Topic.
-        ?Topic ont:hasLearningOutcome ?Learning_Outcome.
-        ?Learning_Outcome ont:hasLearningOutcomeText ?hasLearningOutcomeText.
-        ?Topic ont:hasTopicDescription ?hasTopicDescription.
+        ?Course ont:hasName "${name}"^^xsd:string.
+        ?Course ont:hasLearningGoal ?LearningGoal.
+        ?LearningGoal ont:includes ?LearningOutcome.
+        ?Topic ont:hasLearningOutcome ?LearningOutcome.
+        ?LearningOutcome ont:hasName ?hasName.
+        ?Topic ont:hasDescription ?hasDescription.
       }`;
       const bindingsStream = await myEngine.queryBindings(query, {
         sources: [store],
@@ -371,19 +371,19 @@ const rdfController = {
       const formattedResults = bindings.map((binding) => {
         const bindingObject = Object.fromEntries(binding.entries);
         return {
-          hasLearningOutcomeText: bindingObject.hasLearningOutcomeText
-            ? bindingObject.hasLearningOutcomeText.value
+          hasName: bindingObject.hasName 
+            ? bindingObject.hasName.value 
             : undefined,
-          hasTopicDescription: bindingObject.hasTopicDescription
-            ? bindingObject.hasTopicDescription.value
+          hasDescription: bindingObject.hasDescription
+            ? bindingObject.hasDescription.value
             : undefined,
         };
       });
+      console.log(formattedResults);
       res.status(200).json({
         message: "Truy vấn đã được thực thi",
         results: formattedResults,
       });
-      
     } catch (error) {
       console.error("Error: ", error);
       res.status(500).json({ error: error.message });
@@ -392,9 +392,9 @@ const rdfController = {
   LOTopicCourse: async (req, res) => {
     try {
       const store = req.app.locals.store;
-      const{Topic,LO}=req.body;
+      const { Topic, LO } = req.body;
       if (!Topic || !LO) {
-        return res.status(400).json({message: "Topic và LO là bắt buộc"});
+        return res.status(400).json({ message: "Topic và LO là bắt buộc" });
       }
       const query = `
       PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
@@ -414,9 +414,7 @@ const rdfController = {
       const formattedResults = bindings.map((binding) => {
         const bindingObject = Object.fromEntries(binding.entries);
         return {
-          hasID: bindingObject.hasID
-            ? bindingObject.hasID.value
-            : undefined,
+          hasID: bindingObject.hasID ? bindingObject.hasID.value : undefined,
           hasCourseName: bindingObject.hasCourseName
             ? bindingObject.hasCourseName.value
             : undefined,
@@ -433,10 +431,10 @@ const rdfController = {
   },
   Course: async (req, res) => {
     try {
-      const store = req.app.locals.store; 
-      const{LO, Topic}=req.body;
+      const store = req.app.locals.store;
+      const { LO, Topic } = req.body;
       if (!LO || !Topic) {
-        return res.status(400).json({message: "LO và Topic là bắt buộc"});
+        return res.status(400).json({ message: "LO và Topic là bắt buộc" });
       }
       const query = `
       PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
@@ -466,18 +464,18 @@ const rdfController = {
         message: "Truy vấn đã được thực thi",
         results: formattedResults,
       });
-    }catch (error) {
+    } catch (error) {
       console.error("Error: ", error);
       res.status(500).json({ error: error.message });
     }
   },
   //subTopic
-  SubTopicOfTopic: async(req, res) => {
+  SubTopicOfTopic: async (req, res) => {
     try {
-      const store = req.app.locals.store; 
-      const {name, Topic} = req.body;
+      const store = req.app.locals.store;
+      const { name, Topic } = req.body;
       if (!name || !Topic) {
-        return res.status(400).json({message: "name và Topic là bắt buộc"});
+        return res.status(400).json({ message: "name và Topic là bắt buộc" });
       }
       const query = `
       PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
