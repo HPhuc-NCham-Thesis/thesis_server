@@ -1,122 +1,48 @@
+const { get } = require("../routers/loadRouter");
+
 const QueryEngine = require("@comunica/query-sparql").QueryEngine;
 
 const myEngine = new QueryEngine();
 
 const loadController = {
-    LoadTopicLO: async (req, res) => {
-        try {
-            const store = req.app.locals.store;
-            const query1 = `
-            PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
-            SELECT DISTINCT ?hasTopicDescription 
-            WHERE {
-                ?Topic ont:hasTopicDescription ?hasTopicDescription.
-            }`;
-            const bindingsStream1 = await myEngine.queryBindings(query1, {
-                sources: [store],
-              });
-            const bindings1 = await bindingsStream1.toArray();
-            const formattedResults1 = bindings1.map((binding1) => {
-                const bindingObject = Object.fromEntries(binding1.entries);
-                return {
-                    hasTopicDescription: bindingObject.hasTopicDescription 
-                        ? bindingObject.hasTopicDescription.value 
-                        : undefined,
-              };
-            });
-            const query = `
-            PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
-            SELECT DISTINCT ?hasLearningOutcomeText
-            WHERE {
-                ?Learning_Outcome ont:hasLearningOutcomeText ?hasLearningOutcomeText.
-            }`;
-            const bindingsStream = await myEngine.queryBindings(query, {
-                sources: [store],
-              });
-            const bindings = await bindingsStream.toArray();
-            const formattedResults = bindings.map((binding) => {
-                const bindingObject = Object.fromEntries(binding.entries);
-                return {
-                    hasLearningOutcomeText: bindingObject.hasLearningOutcomeText 
-                        ? bindingObject.hasLearningOutcomeText.value 
-                        : undefined,
-              };
-            });
-            const list =[formattedResults1, formattedResults];
-            res.status(200).json(list);
-        } catch (error) {
-            console.error("Error: ", error);
-            res.status(500).json({ error: error.message });
-        }
-    },
-///Lấy tên môn học
-    LoadCourseName: async (req, res) => {
-        try {
-            const store = req.app.locals.store;
-            const query = `
+  ///Lấy tên môn học
+  getCourseName: async (req, res) => {
+    try {
+      const store = req.app.locals.store;
+      const query = `
             PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             SELECT DISTINCT ?hasName 
             WHERE {
-                ?Course ont:hasLearningGoal ?LearningGoal.
+                ?Course rdf:type ont:Course.
                 ?Course ont:hasName ?hasName.
             }`;
-            const bindingsStream = await myEngine.queryBindings(query, {
-                sources: [store],
-              });
-            const bindings = await bindingsStream.toArray();
-            const formattedResults = bindings.map((binding) => {
-                const bindingObject = Object.fromEntries(binding.entries);
-                return {
-                    hasName: bindingObject.hasName 
-                        ? bindingObject.hasName.value 
-                        : undefined,
-              };
-            });
-            res.status(200).json(formattedResults);
-        } catch (error) {
-            console.error("Error: ", error);
-            res.status(500).json({ error: error.message });
-        }   
-    },
-//
-    getTopicByCourse: async (req, res) => {
-        try {
-            const store = req.app.locals.store;
-            const {name} = req.body;
-            console.log(req.body);
-            const query = `
-            PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
-            SELECT DISTINCT ?hasTopicDescription
-            WHERE {
-                ?Course ont:hasCourseName "${name}"^^xsd:string.
-                ?Course ont:contains ?Topic.
-                ?Topic ont:hasTopicDescription ?hasTopicDescription.
-            }`;
-            const bindingsStream = await myEngine.queryBindings(query, {
-                sources: [store],
-              });
-            const bindings = await bindingsStream.toArray();
-            const formattedResults = bindings.map((binding) => {
-                const bindingObject = Object.fromEntries(binding.entries);
-                return {
-                    hasTopicDescription: bindingObject.hasTopicDescription 
-                        ? bindingObject.hasTopicDescription.value 
-                        : undefined,
-              };
-            });
-            res.status(200).json(formattedResults);
-        } catch (error) {
-            console.error("Error: ", error);
-            res.status(500).json({ error: error.message });
-        }   
-    },
-//Lấy danh sách hoạt động thuộc môn học
-    getActivityByCourse: async (req, res) => {
-        try {
-            const store = req.app.locals.store;
-            const {name} = req.body;
-            console.log(req.body);
-            const query = `
+      const bindingsStream = await myEngine.queryBindings(query, {
+        sources: [store],
+      });
+      const bindings = await bindingsStream.toArray();
+      const formattedResults = bindings.map((binding) => {
+        const bindingObject = Object.fromEntries(binding.entries);
+        return {
+          hasName: bindingObject.hasName
+            ? bindingObject.hasName.value
+            : undefined,
+        };
+      });
+      res.status(200).json(formattedResults);
+    } catch (error) {
+      console.error("Error: ", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  //Lấy danh sách hoạt động thuộc môn học
+  getActivityByCourse: async (req, res) => {
+    try {
+      const store = req.app.locals.store;
+      const { name } = req.body;
+      console.log(req.body);
+      const query = `
             PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
             SELECT DISTINCT ?hadID ?hasName
             WHERE {
@@ -130,96 +56,160 @@ const loadController = {
                 ?Activity ont:hasName ?hasName.
             }
             GROUP BY ?hadID ?hasName`;
-            const bindingsStream = await myEngine.queryBindings(query, {
-                sources: [store],
-              });
-            const bindings = await bindingsStream.toArray();
-            const formattedResults = bindings.map((binding) => {
-                const bindingObject = Object.fromEntries(binding.entries);
-                return {
-                    hasName: bindingObject.hasName 
-                        ? bindingObject.hasName.value 
-                        : undefined,
-              };
-            });
-            res.status(200).json(formattedResults);
+      const bindingsStream = await myEngine.queryBindings(query, {
+        sources: [store],
+      });
+      const bindings = await bindingsStream.toArray();
+      const formattedResults = bindings.map((binding) => {
+        const bindingObject = Object.fromEntries(binding.entries);
+        return {
+          hasName: bindingObject.hasName
+            ? bindingObject.hasName.value
+            : undefined,
+        };
+      });
+      res.status(200).json(formattedResults);
+    } catch (error) {
+      console.error("Error: ", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+  //Lấy danh sách Topic
+  getListTopic: async (req, res) => {
+    try {
+      const store = req.app.locals.store;
+      const query = `
+            PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            SELECT DISTINCT ?hasDescription
+            WHERE {
+                ?Topic rdf:type ont:Topic.
+                ?Topic ont:hasDescription ?hasDescription.
+            }`;
+      const bindingsStream = await myEngine.queryBindings(query, {
+        sources: [store],
+      });
+      const bindings = await bindingsStream.toArray();
+      const formattedResults = bindings.map((binding) => {
+        const bindingObject = Object.fromEntries(binding.entries);
+        return {
+            hasDescription: bindingObject.hasDescription
+                ? bindingObject.hasDescription.value
+                : undefined,
+            };
+      });
+      res.status(200).json(formattedResults);
+    } catch (error) {
+      console.error("Error: ", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  //Lấy danh sách Level theo topic
+    getLevelByTopic: async (req, res) => {
+        try {
+        const store = req.app.locals.store;
+        const { Topic } = req.body;
+        const query = `
+                PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
+                SELECT DISTINCT ?hasLevel
+                WHERE {
+                    ?Topic ont:hasDescription "${Topic}"^^xsd:string.
+                    ?Topic ont:hasLearningOutcome ?LearningOutcome.
+                    ?LearningOutcome ont:targets ?LearningLevel.
+                    ?LearningLevel ont:hasName ?hasLevel.
+                }`;
+        const bindingsStream = await myEngine.queryBindings(query, {
+            sources: [store],
+        });
+        const bindings = await bindingsStream.toArray();
+        const formattedResults = bindings.map((binding) => {
+            const bindingObject = Object.fromEntries(binding.entries);
+            return {
+            hasLevel: bindingObject.hasLevel
+                ? bindingObject.hasLevel.value
+                : undefined,
+            };
+        });
+        res.status(200).json(formattedResults);
         } catch (error) {
-            console.error("Error: ", error);
-            res.status(500).json({ error: error.message });
-        }   
-    },
-    loadLearnerByActivity: async (req, res) => {
-        try {
-            const store = req.app.locals.store;
-            const {Act} = req.body;
-            console.log(req.body);
-            const query = `
-            PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
-            SELECT DISTINCT ?hasID
-            WHERE {
-                ?Activity ont:hasActivityDescription "${Act}"^^xsd:string.
-                ?Course ont:contains ?Topic.
-                ?Activity ont:relatedTo ?Topic.
-                ?Activity ont:belongsTo ?Learner.
-                ?Learner ont:hasID ?hasID.
-            }`;
-            const bindingsStream = await myEngine.queryBindings(query, {
-                sources: [store],
-              });
-            const bindings = await bindingsStream.toArray();
-            const formattedResults = bindings.map((binding) => {
-                const bindingObject = Object.fromEntries(binding.entries);
-                return {
-                    hasID: bindingObject.hasID 
-                        ? bindingObject.hasID.value 
-                        : undefined,
-              };
-            });
-            res.status(200).json(formattedResults);
-        }catch (error) {
-            console.error("Error: ", error);
-            res.status(500).json({ error: error.message });
+        console.error("Error: ", error);
+        res.status(500).json({ error: error.message });
         }
     },
-    loadLearnerByCourse: async (req, res) => {
-        try {
-            const store = req.app.locals.store;
-            const {name} = req.body;
-            console.log(req.body);
-            const query = `
-            PREFIX ont: <http://www.semanticweb.org/user/ontologies/2024/2/untitled-ontology-6#>
+  
+  //Lấy danh sách Topic thuộc Course
+  getTopicByCourse: async (req, res) => {
+    try {
+      const store = req.app.locals.store;
+      const { name } = req.body;
+      const query = `
+            PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
+            SELECT DISTINCT ?hasDescription
+            WHERE {
+                ?Course ont:hasName "${name}"^^xsd:string.
+                ?Course ont:hasLearningGoal ?LearningGoal.
+                ?LearningGoal ont:includes ?LearningOutcome.
+                ?Topic ont:hasLearningOutcome ?LearningOutcome.
+                ?Topic ont:hasDescription ?hasDescription.
+            }`;
+      const bindingsStream = await myEngine.queryBindings(query, {
+        sources: [store],
+      });
+      const bindings = await bindingsStream.toArray();
+      const formattedResults = bindings.map((binding) => {
+        const bindingObject = Object.fromEntries(binding.entries);
+        return {
+          hasDescription: bindingObject.hasDescription
+            ? bindingObject.hasDescription.value
+            : undefined,
+        };
+      });
+      res.status(200).json(formattedResults);
+    } catch (error) {
+      console.error("Error: ", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  //Lấy danh sách Learner tham gia Course
+  getLearnerByCourse: async (req, res) => {
+    try {
+      const store = req.app.locals.store;
+      const { name } = req.body;
+      const query = `
+            PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
             SELECT DISTINCT ?hasID
             WHERE {
-                ?Course ont:hasCourseName "${name}"^^xsd:string.
-                ?Course ont:contains ?Topic.
-                ?Activity ont:relatedTo ?Topic.
-                ?Activity ont:belongsTo ?Learner.
+                ?Course ont:hasName "${name}"^^xsd:string.
+                ?Enrollment ont:enrolls ?Course;
+                            ont:relates ?Group.
+                ?Learner ont:belongsTo ?Group.
                 ?Learner ont:hasID ?hasID.
             }`;
-            const bindingsStream = await myEngine.queryBindings(query, {
-                sources: [store],
-              });
-            const bindings = await bindingsStream.toArray();
-            const formattedResults = bindings.map((binding) => {
-                const bindingObject = Object.fromEntries(binding.entries);
-                return {
-                    hasID: bindingObject.hasID 
-                        ? bindingObject.hasID.value 
-                        : undefined,
-              };
-            });
-            res.status(200).json(formattedResults);
-        }catch (error) {
-            console.error("Error: ", error);
-            res.status(500).json({ error: error.message });
-        }
-    },
-//Lấy danh sách các group có tham gia course
-getGroupByCourse: async (req, res) => {
-        try {
-            const store = req.app.locals.store;
-            const {name} = req.body;
-            const query = `
+      const bindingsStream = await myEngine.queryBindings(query, {
+        sources: [store],
+      });
+      const bindings = await bindingsStream.toArray();
+      const formattedResults = bindings.map((binding) => {
+        const bindingObject = Object.fromEntries(binding.entries);
+        return {
+          hasID: bindingObject.hasID ? bindingObject.hasID.value : undefined,
+        };
+      });
+      res.status(200).json(formattedResults);
+    } catch (error) {
+      console.error("Error: ", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  //Lấy danh sách các group có tham gia course
+  getGroupByCourse: async (req, res) => {
+    try {
+      const store = req.app.locals.store;
+      const { name } = req.body;
+      const query = `
             PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
             SELECT DISTINCT ?hasID
             WHERE {
@@ -228,24 +218,22 @@ getGroupByCourse: async (req, res) => {
                             ont:relates ?Group.
                 ?Group ont:hasID ?hasID.
             }`;
-            const bindingsStream = await myEngine.queryBindings(query, {
-                sources: [store],
-              });
-            const bindings = await bindingsStream.toArray();
-            const formattedResults = bindings.map((binding) => {
-                const bindingObject = Object.fromEntries(binding.entries);
-                return {
-                    hasID: bindingObject.hasID 
-                        ? bindingObject.hasID.value 
-                        : undefined,
-              };
-            });
-            res.status(200).json(formattedResults);
-        }catch (error) {
-            console.error("Error: ", error);
-            res.status(500).json({ error: error.message });
-        }
-    },
+      const bindingsStream = await myEngine.queryBindings(query, {
+        sources: [store],
+      });
+      const bindings = await bindingsStream.toArray();
+      const formattedResults = bindings.map((binding) => {
+        const bindingObject = Object.fromEntries(binding.entries);
+        return {
+          hasID: bindingObject.hasID ? bindingObject.hasID.value : undefined,
+        };
+      });
+      res.status(200).json(formattedResults);
+    } catch (error) {
+      console.error("Error: ", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
 };
 
 module.exports = loadController;
