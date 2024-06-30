@@ -108,7 +108,7 @@ const KRController = {
       ?Course ont:hasLearningGoal ?LearningGoal.
       ?LearningGoal ont:includes ?LearningOutcome.
       ?Topic ont:hasLearningOutcome ?LearningOutcome.
-      ?LearningOutcome ont:targets ?hasLearningLevel.
+      ?LearningOutcome ont:targets ?LearningLevel.
       ?LearningLevel ont:hasName ?hasName.
       ?LearningLevel ont:hasType ?hasType.
       ?LearningLevel ont:hasDescription ?hasDescription.
