@@ -204,7 +204,7 @@ const KRController = {
     SELECT DISTINCT ?hasDescription ?hasName
     WHERE {
       ?Course ont:hasName "${name}"^^xsd:string.
-      ?Activity ont:hasName "${activity}"^^xsd:string.
+      ?Activity ont:hasDescription "${activity}"^^xsd:string.
       ?Course ont:hasLearningGoal ?LearningGoal.
       ?LearningGoal ont:includes ?LearningOutcome.
       ?LearningOutcomr ont:targets ?LearningLevel.
