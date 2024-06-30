@@ -44,7 +44,7 @@ const loadController = {
       console.log(req.body);
       const query = `
             PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
-            SELECT DISTINCT ?hadID ?hasName
+            SELECT DISTINCT ?hadID ?hasName ?hasDescription
             WHERE {
                 ?Course ont:hasName "${name}"^^xsd:string.
                 ?Course ont:hasLearningGoal ?LearningGoal.
@@ -54,8 +54,9 @@ const loadController = {
                 ?LOAlignment ont:involves ?Activity.
                 ?Activity ont:hasID ?hadID.
                 ?Activity ont:hasName ?hasName.
+                ?Activity ont:hasDescription ?hasDescription.
             }
-            GROUP BY ?hadID ?hasName`;
+            GROUP BY ?hadID ?hasName ?hasDescription`;
       const bindingsStream = await myEngine.queryBindings(query, {
         sources: [store],
       });
