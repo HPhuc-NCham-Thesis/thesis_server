@@ -343,7 +343,7 @@ const KRController = {
         }
     },
 
-    //LearnerReasoning
+    //Learner Reasoning
     //Default
     getLearnerInfoDefault: async (req, res) => {
         try {
