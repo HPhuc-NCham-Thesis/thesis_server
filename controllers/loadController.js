@@ -244,9 +244,9 @@ const loadController = {
         PREFIX ont: <http://www.semanticweb.org/KnowledgeModel#>
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         SELECT DISTINCT ?LearningOutcomeID ?LearningOutcomeName ?LearningOutcomeDescription
+        WHERE {
         BIND ("${name}" AS ?inputName)
           {
-            
             FILTER (?inputName = "")
             ?LearningOutcome rdf:type ont:LearningOutcome.
           }
@@ -257,7 +257,7 @@ const loadController = {
             ?Course ont:hasLearningGoal ?LearningGoal.
             ?LearningGoal ont:includes ?LearningOutcome.
           }
-
+          ?LearningOutcome ont:hasID ?LearningOutcomeID; ont:hasName ?LearningOutcomeName; ont:hasDescription ?LearningOutcomeDescription. 
         }`;
       const bindingsStream = await myEngine.queryBindings(query, {
         sources: [store],
