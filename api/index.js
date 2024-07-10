@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => res.send("Express on Vercel"));
+app.get("/", (req, res) => res.send("Learning Analytics Platform"));
 
 // Sử dụng router được định nghĩa trong router.js
 require("../routers/index")(app);
