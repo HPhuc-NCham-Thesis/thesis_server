@@ -26,3 +26,5 @@ const PORT = 3000;
       process.exit(1); // Thoát nếu không thể nạp dữ liệu RDF
   }
 })();
+
+module.exports = app;
