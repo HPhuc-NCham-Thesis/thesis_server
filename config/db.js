@@ -4,7 +4,7 @@ const rdfxmlParser = require('rdfxml-streaming-parser').RdfXmlParser;
 const { Store } = require('n3');
 
 const loadRDFFile = async () => {
-    const filePath = "./config/KnowledgeModel.rdf";  
+    const filePath = "./KnowledgeModel.rdf";  
     try {
         const rdfData = await fs.readFile(filePath, "utf8");
 
