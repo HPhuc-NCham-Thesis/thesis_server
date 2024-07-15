@@ -185,7 +185,7 @@ const LAController = {
 
       res.status(200).json({
         message: "Truy vấn đã được thực thi",
-        result: results,
+        results,
       });
     } catch (error) {
       console.error("Error: ", error);
